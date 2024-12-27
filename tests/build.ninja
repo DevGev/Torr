@@ -1,0 +1,14 @@
+rule c
+    command = g++ -std=c++2b -I../source/ -O3 -c -lssl -lcrypto $in -o $out
+
+rule link
+    command = g++ -std=c++2b -lssl -lcrypto $in
+
+build bencode.o: c bencode.cpp
+build magnet.o: c magnet.cpp
+build url.o: c url.cpp
+build network.o: c network.cpp
+build torrent_file.o: c torrent_file.cpp
+build tests.o: c tests.cpp
+build tests: link tests.o bencode.o url.o magnet.o network.o torrent_file.o ../libtorr.a
+default tests
