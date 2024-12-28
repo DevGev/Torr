@@ -28,9 +28,9 @@ Will Torr be supported on Windows? Short answer: No.
 * ninja build
 * g++ >= 14.0.0
 
-Build ```libtorr.a```
+Build ```libtorr.a``` and copy headers
  ```sh
-   ninja
+   build.sh release
    ```
    
 ## Roadmap

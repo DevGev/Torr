@@ -3,7 +3,7 @@
 #include <print>
 
 #define TEST_NAME "torrent_file.cpp"
-#define TEST_FILE "test.torrent"
+#define TEST_FILE "torrent_file/test.torrent"
 #define TEST_EXPECTED_INFO_HASH "dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c"
 #define TEST_EXPECTED_PIECE_LENGTH 262144
 
