@@ -30,7 +30,7 @@ Will Torr be supported on Windows? Short answer: No.
 
 Build ```libtorr.a``` and copy headers
  ```sh
-   build.sh release
+   ./build.sh release
    ```
    
 ## Roadmap

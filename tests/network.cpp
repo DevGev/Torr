@@ -1,6 +1,6 @@
 #include <network/tracker.hpp>
 #include <network/endpoint.hpp>
-#include <network/peer.hpp>
+#include <network/peer/peer.hpp>
 #include <uri/magnet.hpp>
 #include <uri/url.hpp>
 

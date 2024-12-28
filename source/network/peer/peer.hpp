@@ -1,7 +1,7 @@
 #pragma once
 
 #include <torrent.hpp>
-#include <ak/dynamic_bitset.hpp>
+#include <generic/dynamic_bitset.hpp>
 #include <network/socket/tcp.hpp>
 #include <network/socket/endian.hpp>
 #include <network/endpoint.hpp>
@@ -51,6 +51,8 @@ public:
     size_t randomize_identifier();
     size_t construct_handshake_string();
     void set_download_target(const torrent_source&);
+    void piece_download_complete(size_t piece_index,
+        std::span<std::byte> piece_data);
 
     const std::vector<std::byte>& identifier() const;
     const torrent_source& download_target() const;
@@ -90,7 +92,7 @@ private:
 
     bool receive_message_unchoke(peer& ourself);
     bool receive_message_cancel(const peer::message& message);
-    bool receive_message_block(const peer::message& message);
+    bool receive_message_block(peer& ourself, const peer::message& message);
     bool receive_message_request(const peer::message& message);
     bool receive_message_bitfield(const peer::message& message);
     bool receive_message_have(const peer::message& message);
@@ -100,6 +102,7 @@ private:
     bool send_message_request(uint32_t offset = 0);
     bool send_message_interested();
     bool send_message_bitfield(const peer& ourself);
+    bool send_message_have(const download_torrent_piece& piece);
 
 public:
     torrent_peer();

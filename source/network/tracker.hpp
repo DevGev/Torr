@@ -3,7 +3,7 @@
 #include <network/socket/endian.hpp>
 #include <network/socket/udp.hpp>
 #include <network/endpoint.hpp>
-#include <network/peer.hpp>
+#include <network/peer/peer.hpp>
 #include <uri/url.hpp>
 #include <expected>
 #include <vector>

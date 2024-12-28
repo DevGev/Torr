@@ -1,4 +1,4 @@
-#include <ak/bencode_map.hpp>
+#include <generic/bencode_map.hpp>
 #include <print>
 
 #define TEST_NAME "ak/bencode_map.hpp"

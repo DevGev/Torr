@@ -8,7 +8,7 @@ build torrent_file.o: cpp ./source/torrent_file.cpp
 build uri_magnet.o: cpp ./source/uri/magnet.cpp
 build uri_url.o: cpp ./source/uri/url.cpp
 build network_tracker.o: cpp ./source/network/tracker.cpp
-build network_peer.o: cpp ./source/network/peer.cpp
+build network_peer.o: cpp ./source/network/peer/peer.cpp
 build network_socket_udp.o: cpp ./source/network/socket/udp.cpp
 build network_socket_tcp.o: cpp ./source/network/socket/tcp.cpp
 build network_socket_http.o: cpp ./source/network/socket/http.cpp

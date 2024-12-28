@@ -33,3 +33,6 @@
 
 # Ninja
 .ninja_log
+
+# Ccls
+.ccls

@@ -69,6 +69,12 @@ size_t torr::peer::construct_handshake_string()
     return m_handshake.size();
 }
 
+void torr::peer::piece_download_complete(size_t piece_index,
+    std::span<std::byte> piece_data)
+{
+    m_bitfield_pieces.bit_set(piece_index);
+}
+
 const std::vector<std::byte>& torr::peer::identifier() const
 {
     return m_identifier;
@@ -124,7 +130,7 @@ bool torr::torrent_peer::handshake(peer& ourself)
         return false;
 
     std::vector<std::byte> receive_handshake;
-    size_t max_handshake_length = 255;
+    size_t max_handshake_length = 68;
     receive_handshake.resize(max_handshake_length);
     if (!m_tcp.receive((uint8_t*)receive_handshake.data(), max_handshake_length))
         return false;
@@ -157,6 +163,8 @@ bool torr::torrent_peer::receive_message(peer& ourself)
     if (!m_tcp.receive((uint8_t*)&message, sizeof(peer::message)))
         return false;
 
+    std::println("recv message {}", (int)message.type);
+
     switch (message.type) {
     case peer::message_type::choke:
         m_am_choking = 1;
@@ -187,7 +195,7 @@ bool torr::torrent_peer::receive_message(peer& ourself)
         break;
 
     case peer::message_type::block:
-        receive_message_block(message);
+        receive_message_block(ourself, message);
         break;
 
     case peer::message_type::cancel:
@@ -289,7 +297,8 @@ bool torr::torrent_peer::receive_message_request(const peer::message& message)
     return false;
 }
 
-bool torr::torrent_peer::receive_message_block(const peer::message& message)
+bool torr::torrent_peer::receive_message_block(peer& ourself,
+    const peer::message& message)
 {
     std::println("receive message block type={} length={}", (int)message.type, message.length.as_small_endian());
 
@@ -326,21 +335,19 @@ bool torr::torrent_peer::receive_message_block(const peer::message& message)
         packet_offset += receive_or_error.value();
     }
 
-    std::println("download of {} bytes succesful!", packet_offset);
-    uint8_t* test = (uint8_t*)m_download_piece.data.data() + m_download_piece.downloaded;
-    for (int i = 0; i < 100; ++i)
-        std::print("{}", (char)test[i]);
-    std::println();
-
     m_download_piece.downloaded += block_length;
 
     if (m_download_piece.downloaded >= m_download_piece.piece_size) {
-        std::ofstream outfile("piece.libtorr", std::ios::out | std::ios::binary); 
-        outfile.write((const char*)m_download_piece.data.data(), m_download_piece.data.size());
-        assert(false && "test download done!");
+        ourself.piece_download_complete(
+            m_download_piece.piece_index,
+            m_download_piece.data
+        );
+
+        send_message_have(m_download_piece);
+        if (determine_download_piece(ourself))
+            send_message_interested();
     }
 
-    //send_message_request();
     return true;
 }
 
@@ -426,6 +433,26 @@ bool torr::torrent_peer::send_message_bitfield(const peer& ourself)
     if (!m_tcp.send((uint8_t*)&message, sizeof(message)) ||
         !m_tcp.send(data, ourself.bitfield_pieces().bytes_size()))
         return false;
+    return true;
+}
+
+
+bool torr::torrent_peer::send_message_have(const download_torrent_piece& piece)
+{
+    struct have_payload {
+        peer::message message;
+        big_endian_uint32_t piece_index;
+    } __attribute__((packed));
+
+    have_payload payload;
+    payload.message.type = peer::message_type::have;
+    payload.message.length = sizeof(payload) - sizeof(uint32_t);
+    payload.piece_index = piece.piece_index;
+
+    if (!m_tcp.send((uint8_t*)&payload, sizeof(payload)))
+        return false;
+
+    std::println("sent message have {} succesfully", piece.piece_index);
     return true;
 }
 
