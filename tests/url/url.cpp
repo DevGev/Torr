@@ -14,7 +14,7 @@
 #define TEST_URL_STRING2 "https://a.a.com:11443501"
 #define EXPECTED_PORT2 11443501
 
-int test_url_main()
+int main()
 {
     std::print("test: {} ... ", TEST_NAME);
 

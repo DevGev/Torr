@@ -7,10 +7,7 @@ if [ "$1" != "release" ]
 then
     echo -e "\033[32;1;4mBuilding and running tests\033[0m"
     cd ./tests/
-    ninja
-    ./a.out
-
-    ninja -t clean
+    ./build_tests.sh
     cd ..
 fi
 

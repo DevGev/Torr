@@ -1,10 +1,10 @@
 #include <generic/bencode_map.hpp>
 #include <print>
 
-#define TEST_NAME "ak/bencode_map.hpp"
+#define TEST_NAME "generic/bencode_map.hpp"
 #define TEST_BENCODE_STRING "d4:wiki7:bencode7:meaningi42e4:hitsli32ei22ed5:C++204:cooleeee"
 
-int test_bencode_main()
+int main()
 {
     std::print("test: {} ... ", TEST_NAME);
 
