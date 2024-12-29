@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <cstdint>
+#include <random>
 #include <print>
 
 inline bool bitset_u8_bit_get(uint8_t b, uint8_t pos)
@@ -112,25 +113,35 @@ public:
         m_bits_size = size_in_bytes * 8;
     }
 
-    /* Find the first occurence where
+    /* Find the occurence where
      * this.bit_get(index) = false and
      * bitset_friend.bit_get(index) = true
      * */
-    std::optional<size_t> find_first_positive_bit_compliment
-        (const dynamic_bitset& bitset_friend) const
+    std::optional<size_t> find_positive_bit_compliment
+        (const dynamic_bitset& bitset_friend, bool randomize = false) const
     {
         std::optional<size_t> found = {};
         size_t bitfield_size = std::min(bytes_size(), bitset_friend.bytes_size());
         std::println("bitfield_size {}", bitfield_size);
         int64_t mismatched_bit_position = -1;
         int64_t mismatched_byte_position = -1;
+        uint32_t skips = 0;
+
+        if (randomize) {
+            std::random_device os_seed;
+            const uint_least32_t seed = os_seed();
+            std::mt19937 generator(seed);
+            std::uniform_int_distribution<uint_least32_t> distribute(0, bitfield_size - 1);
+            skips = distribute(generator);
+        }
 
         for (int64_t i = 0; i < bitfield_size; ++i) {
-            std::println("dynamic_bitset {} vs {}", bitset_friend.const_data()[i], this->const_data()[i]);
             if (bitset_friend.const_data()[i] != this->const_data()[i]) {
                 mismatched_bit_position = i * 8;
                 mismatched_byte_position = i;
-                break;
+
+                if (skips <= 0) break;
+                skips--;
             }
         }
 
@@ -148,4 +159,9 @@ public:
         return found;
     }
 
+    std::optional<size_t> find_first_positive_bit_compliment
+        (const dynamic_bitset& bitset_friend) const
+    {
+        return find_positive_bit_compliment(bitset_friend);
+    }
 };
