@@ -4,13 +4,8 @@
 #include <span>
 #include <expected>
 #include <vector>
-
 #include <cstdint>
 #include <poll.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 class ipc_channel {
 private:
@@ -29,7 +24,7 @@ public:
     const std::vector<std::byte>& read_data();
 
     void set_pid(const pid_t& pid);
-    size_t read(int timeout = -1);
+    size_t read(size_t max_size = 0, int timeout = -1);
     int write(const std::span<std::byte>& data);
 
     std::expected<int, const char*> create_channel();

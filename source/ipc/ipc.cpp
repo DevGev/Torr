@@ -2,6 +2,11 @@
 #include <cassert>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <unistd.h>
+#include <memory.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define IPC_FIFO_PREFIX "/tmp/torr_ipc_channel."
 #define IPC_SHARED_MEMORY_PREFIX "torr__shared__"
@@ -36,20 +41,24 @@ const pid_t& ipc_channel::pid()
     return m_associated_pid;
 }
 
-size_t ipc_channel::read(int timeout)
+size_t ipc_channel::read(size_t max_size, int timeout)
 {
     m_polls[0].fd = m_fifo_file_descriptor;
     m_polls[0].events = POLLIN;
     int poll_value = poll(m_polls, 1, timeout);
     if (poll_value <= 0) return 0;
+
+    size_t size = (max_size) ?
+        max_size : m_read_data.capacity();
+    if (size > m_read_data.capacity())
+        resize_capacity(size);
     
     m_read_data.clear();
-    size_t size = ::read(
+    return ::read(
         m_fifo_file_descriptor,
         m_read_data.data(),
-        m_read_data.capacity()
+        size
     );
-    return size;
 }
 
 int ipc_channel::write(const std::span<std::byte>& data)
