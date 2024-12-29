@@ -115,6 +115,10 @@ pid_t torr::multiproc::spawn()
         multiproc_task task(m_ourself, peer);
         task.work();
         task.quit();
+
+        /* keep explicit _exit() to
+         * surpress compiler warnings */
+        _exit(0);
     }
 }
 
