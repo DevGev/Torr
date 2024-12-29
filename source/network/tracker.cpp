@@ -154,10 +154,7 @@ std::expected<size_t, const char*>
         struct in_addr ip_addr;
         ip_addr.s_addr = ntohl(announce_output.peers[i].ip_address);
         size_t port = announce_output.peers[i].tcp_port;
-
-        torrent_peer tp;
-        tp.set_ip_and_port(ip_addr, port);
-        m_tracker_response.push_peer(tp);
+        m_tracker_response.m_peer_addresses.push_back({ ip_addr, port });
     }
 
     return m_announce_connection_identifier;
@@ -260,12 +257,7 @@ void torr::tracker_response::set_leechers_seeders(const size_t& leechers, const 
     m_leechers = leechers; m_seeders = seeders;
 }
 
-void torr::tracker_response::push_peer(const torrent_peer& p)
-{
-    m_peers.emplace_back(p);
-}
-
 void torr::tracker_response::clear_peers()
 {
-    m_peers.clear();
+    m_peer_addresses.clear();
 }

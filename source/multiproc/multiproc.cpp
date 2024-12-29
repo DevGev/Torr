@@ -31,8 +31,7 @@ torr::multiproc::multiproc(peer& ourself, tracker& track)
     auto announcer_or_error = track.announce(m_ourself);
     if (!announcer_or_error.value())
         return;
-    for (const auto& peer : announcer_or_error.value()->peers())
-        m_addresses.push_back({ peer.ip_address(), peer.port() });
+    m_addresses = announcer_or_error.value()->peers();
 }
 
 torr::multiproc::~multiproc() {}

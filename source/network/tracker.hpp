@@ -1,5 +1,6 @@
 #pragma once
 
+#include <torrent.hpp>
 #include <network/socket/endian.hpp>
 #include <network/socket/udp.hpp>
 #include <network/endpoint.hpp>
@@ -12,9 +13,11 @@
 
 namespace torr {
 
+class tracker;
+
 class tracker_response {
 private:
-    std::vector<torrent_peer> m_peers;
+    std::vector<peer_ip_touple> m_peer_addresses;
     size_t m_interval {};
     size_t m_leechers {};
     size_t m_seeders {};
@@ -28,10 +31,12 @@ public:
     void push_peer(const torrent_peer& p);
     void clear_peers();
 
-    std::vector<torrent_peer>& peers() { return m_peers; };
+    const std::vector<peer_ip_touple>& peers() { return m_peer_addresses; };
     const size_t& interval() const { return m_interval; };
     const size_t& leechers() const { return m_leechers; };
     const size_t& seeders() const { return m_seeders; };
+
+    friend tracker;
 };
 
 class tracker {
