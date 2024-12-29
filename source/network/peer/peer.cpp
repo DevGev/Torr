@@ -113,7 +113,7 @@ torr::torrent_peer::~torrent_peer()
 {
 }
 
-bool torr::torrent_peer::set_ip_and_port(const in_addr& ip, size_t& port)
+bool torr::torrent_peer::set_ip_and_port(const in_addr& ip, const size_t& port)
 {
     m_ip_address = ip;
     m_port = port;
@@ -123,12 +123,12 @@ bool torr::torrent_peer::set_ip_and_port(const in_addr& ip, size_t& port)
     return true;
 }
 
-bool torr::torrent_peer::handshake(peer& ourself)
+bool torr::torrent_peer::handshake(const peer& ourself)
 {
     m_tcp.connect(m_ip_address, m_port);
     m_tcp.set_send_timeout(500000);
 
-    if (ourself.handshake().empty() && !ourself.construct_handshake_string())
+    if (ourself.handshake().empty())
         return false;
     if (!m_tcp.send((uint8_t*)ourself.handshake().data(), ourself.handshake().size(), 0).has_value())
         return false;
@@ -158,7 +158,7 @@ bool torr::torrent_peer::handshake(peer& ourself)
     return true;
 }
 
-bool torr::torrent_peer::receive_message(peer& ourself)
+bool torr::torrent_peer::receive_message(const peer& ourself)
 {
     if (!m_handshake_complete)
         return false;
@@ -223,7 +223,7 @@ void torr::torrent_peer::determine_outstanding_requests(const peer& ourself)
 bool torr::torrent_peer::determine_download_piece(const peer& ourself)
 {
     std::optional<size_t> found =
-        ourself.bitfield_pieces().find_first_positive_bit_compliment(m_bitfield);
+        ourself.bitfield_pieces().find_positive_bit_compliment(m_bitfield, true);
     if (!found.has_value())
         return false;
 
@@ -231,22 +231,37 @@ bool torr::torrent_peer::determine_download_piece(const peer& ourself)
     memset(&m_download_piece, 0, sizeof(m_download_piece));
     m_download_piece.piece_index = index_to_download;
     m_download_piece.piece_size = ourself.download_target().piece_length().value();
+    m_download_piece.exists = true;
 
     std::println("decided on download piece at index {}", index_to_download);
     return true;
 }
 
-bool torr::torrent_peer::receive_message_unchoke(peer& ourself)
+bool torr::torrent_peer::download_next_piece(const peer& ourself)
 {
-    std::println("receive unchoke!");
-    m_am_choking = 0;
+    if (m_am_choking)
+        return false;
 
-    if (!determine_download_piece(ourself))
+    if (!m_download_piece.exists) {
+        if (!determine_download_piece(ourself))
+            return false;
+    }
+
+    if (m_download_piece.downloaded &&
+        m_download_piece.downloaded >=
+        m_download_piece.piece_size)
         return false;
 
     determine_outstanding_requests(ourself);
     fill_outstanding_requests(ourself);
     return true;
+}
+
+bool torr::torrent_peer::receive_message_unchoke(const peer& ourself)
+{
+    std::println("receive unchoke!");
+    m_am_choking = 0;
+    return download_next_piece(ourself);
 }
 
 bool torr::torrent_peer::receive_message_have(const peer::message& message)
@@ -301,7 +316,7 @@ bool torr::torrent_peer::receive_message_request(const peer::message& message)
     return false;
 }
 
-bool torr::torrent_peer::receive_message_block(peer& ourself,
+bool torr::torrent_peer::receive_message_block(const peer& ourself,
     const peer::message& message)
 {
     std::println("receive message block type={} length={}", (int)message.type, message.length.as_small_endian());
@@ -342,14 +357,14 @@ bool torr::torrent_peer::receive_message_block(peer& ourself,
     m_download_piece.downloaded += block_length;
 
     if (m_download_piece.downloaded >= m_download_piece.piece_size) {
-        ourself.piece_download_complete(
+        /* ourself.piece_download_complete(
             m_download_piece.piece_index,
             m_download_piece.data
-        );
+        ); */
 
+        /* FIXME: let multiproc send */
         send_message_have(m_download_piece);
-        if (determine_download_piece(ourself))
-            send_message_interested();
+        send_message_interested();
     }
 
     return true;
@@ -460,12 +475,34 @@ bool torr::torrent_peer::send_message_have(const download_torrent_piece& piece)
     return true;
 }
 
+void torr::torrent_peer::empty_download_piece()
+{
+    m_download_piece.data.clear();
+    m_download_piece.exists = false;
+}
+
+const torr::torrent_peer::download_torrent_piece&
+    torr::torrent_peer::download_piece() const
+{
+    return m_download_piece;
+}
+
 const std::string& torr::torrent_peer::ip_address_as_string() const
 {
     return m_ip_address_string;
 }
 
+const in_addr& torr::torrent_peer::ip_address() const
+{
+    return m_ip_address;
+}
+
 const size_t torr::torrent_peer::port() const
 {
     return m_port;
+}
+
+const bool torr::torrent_peer::socket_healthy() const
+{
+    return m_socket_healthy;
 }

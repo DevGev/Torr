@@ -91,9 +91,9 @@ private:
     void determine_outstanding_requests(const peer& ourself);
     bool determine_download_piece(const peer& ourself);
 
-    bool receive_message_unchoke(peer& ourself);
+    bool receive_message_unchoke(const peer& ourself);
     bool receive_message_cancel(const peer::message& message);
-    bool receive_message_block(peer& ourself, const peer::message& message);
+    bool receive_message_block(const peer& ourself, const peer::message& message);
     bool receive_message_request(const peer::message& message);
     bool receive_message_bitfield(const peer::message& message);
     bool receive_message_have(const peer::message& message);
@@ -109,11 +109,17 @@ public:
     torrent_peer();
     ~torrent_peer();
 
-    bool receive_message(peer& ourself);
-    bool set_ip_and_port(const in_addr&, size_t&);
-    bool handshake(peer& ourself);
+    bool download_next_piece(const peer& ourself);
+    bool receive_message(const peer& ourself);
+    bool set_ip_and_port(const in_addr&, const size_t&);
+    bool handshake(const peer& ourself);
+    void empty_download_piece();
+
+    const download_torrent_piece& download_piece() const;
     const std::string& ip_address_as_string() const;
+    const in_addr& ip_address() const;
     const size_t port() const;
+    const bool socket_healthy() const;
 };
 
 }

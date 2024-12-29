@@ -3,6 +3,7 @@
 #include <network/peer/peer.hpp>
 #include <uri/magnet.hpp>
 #include <uri/url.hpp>
+#include <multiproc/multiproc.hpp>
 
 #include <cassert>
 #include <print>
@@ -48,6 +49,34 @@ int test_network_main()
             for (;;) peer.receive_message(ourself);
     }
 
-    std::println("passed");
+    return 0;
+}
+
+int test_network_multiproc_main()
+{
+    std::print("test: multiproc network ... ");
+
+    torr::peer ourself;
+    assert(
+        ourself.randomize_identifier() == 20 &&
+        "failed due to peer.randomize_identifier() != 20"
+    );
+
+    auto magnet = torr::magnet();
+    assert(
+        magnet.from_string(std::string(TEST_MAGNET_STRING)).has_value() &&
+        "failed due to magnet.from_string() throwing std::unexpected"
+    );
+
+    assert(
+        !magnet.trackers().empty() &&
+        "failed due to magnet.trackers().empty()"
+    );
+
+    ourself.set_download_target(magnet);
+
+    auto first_tracker = magnet.trackers().at(0);
+    torr::multiproc download_process(ourself, first_tracker);
+    download_process.start();
     return 0;
 }

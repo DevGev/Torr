@@ -7,10 +7,16 @@
 #include <memory>
 #include <string>
 #include <cassert>
+#include <arpa/inet.h>
 
 #define VIRTUAL_MEMBER_FUNCTION return {};
 
 namespace torr {
+
+struct peer_ip_touple {
+    in_addr address;
+    size_t port;
+} __attribute__ ((packed));
 
 class torrent_source {
 public:
