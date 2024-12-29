@@ -26,6 +26,7 @@ public:
     void set_pid(const pid_t& pid);
     size_t read(size_t max_size = 0, int timeout = -1);
     int write(const std::span<std::byte>& data);
+    void resize_capacity(size_t new_size);
 
     std::expected<int, const char*> create_channel();
     std::expected<int, const char*> connect_channel();

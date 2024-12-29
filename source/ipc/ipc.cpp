@@ -31,6 +31,11 @@ void ipc_channel::set_pid(const pid_t& pid)
     m_associated_pid = pid;
 }
 
+void ipc_channel::resize_capacity(size_t new_size)
+{
+    m_read_data.resize(new_size);
+}
+
 const std::vector<std::byte>& ipc_channel::read_data()
 {
     return m_read_data;
