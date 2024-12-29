@@ -51,8 +51,8 @@ public:
     size_t randomize_identifier();
     size_t construct_handshake_string();
     void set_download_target(const torrent_source&);
-    void piece_download_complete(size_t piece_index,
-        std::span<std::byte> piece_data);
+    void piece_download_complete(size_t piece_index);
+    void set_shared_bitfield(uint8_t* shared_pointer, size_t bytes_size);
 
     const std::vector<std::byte>& identifier() const;
     const torrent_source& download_target() const;
@@ -66,6 +66,7 @@ public:
         size_t piece_index {};
         size_t piece_size {};
         size_t downloaded {};
+        bool exists { false };
         std::vector<std::byte> data;
     };
 

@@ -69,8 +69,12 @@ size_t torr::peer::construct_handshake_string()
     return m_handshake.size();
 }
 
-void torr::peer::piece_download_complete(size_t piece_index,
-    std::span<std::byte> piece_data)
+void torr::peer::set_shared_bitfield(uint8_t* shared_pointer, size_t bytes_size)
+{
+    m_bitfield_pieces.from_existing_buffer(shared_pointer, bytes_size);
+}
+
+void torr::peer::piece_download_complete(size_t piece_index)
 {
     m_bitfield_pieces.bit_set(piece_index);
 }
