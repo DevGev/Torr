@@ -95,6 +95,7 @@ ipc_shared_memory::ipc_shared_memory(const std::string& identifier, size_t max_s
     key_t key = ftok(identifier.c_str(), 65);
     int shmid = shmget(key, max_size, 0666 | IPC_CREAT);
     m_memory_pointer = (uint8_t*)shmat(shmid, (void*)0, 0);
+    memset(m_memory_pointer, 0, max_size);
 }
 
 ipc_shared_memory::~ipc_shared_memory()
