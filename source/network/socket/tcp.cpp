@@ -32,6 +32,9 @@ std::expected<int, const char*>
 std::expected<int, const char*>
     torr::tcp::connect(const struct in_addr& ip_address, const size_t& port)
 {
+    if (m_socket_fd >= 0)
+        close(m_socket_fd);
+
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_socket_fd < 0)
         return std::unexpected("tcp connect: socket() failed");
