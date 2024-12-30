@@ -123,9 +123,6 @@ std::expected<std::span<std::byte>, const char*>
         }
     }
 
-    std::ofstream outfile("http_outfile", std::ios::out | std::ios::binary); 
-    outfile.write((const char*)m_data.data(), m_data.size());
-
     return m_data;
 }
 
