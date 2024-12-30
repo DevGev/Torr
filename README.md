@@ -12,9 +12,9 @@
     <br />
     <sub>&nbsp;&nbsp;<a href="#roadmap">Roadmap</a>
     ·
-    &nbsp;&nbsp;<a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=bug&template=bug-report---.md">Contribute</a>
+    &nbsp;&nbsp;<a href="https://github.com/DevGev/Torr/blob/main/CONTRIBUTE.md">Contribute</a>
     ·
-    &nbsp;&nbsp;<a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=enhancement&template=feature-request---.md">Download</a></sup>
+    &nbsp;&nbsp;<a href="https://github.com/DevGev/Torr/archive/refs/heads/main.zip">Download</a></sup>
   </p>
 </div>
       
@@ -38,8 +38,11 @@ Build ```libtorr.a``` and copy headers
 - [x] bencode
 - [ ] block peers
 - [ ] seeding
-- [ ] concurrency
+- [x] concurrency
 - [ ] proxy
+- [ ] distributed hash table
+- [ ] file piece storage system
 - [ ] sandboxing
     - [ ] sys mseal
     - [ ] sys landlock
+
