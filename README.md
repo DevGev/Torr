@@ -32,17 +32,23 @@ Build ```libtorr.a``` and copy headers
  ```sh
    ./build.sh release
    ```
+
+### Contribute
+See ``CONTRIBUTE.md`` and roadmap below
    
 ## Roadmap
 - [x] magnet uri
 - [x] bencode
-- [ ] block peers
-- [ ] seeding
-- [x] concurrency
-- [ ] proxy
-- [ ] distributed hash table
-- [ ] file piece storage system
+- [ ] networking
+     - [ ] block peers
+     - [ ] seeding
+     - [ ] dht
+     - [ ] proxy
+- [ ] storage
+    - [ ] caching
+    - [ ] local fs
 - [ ] sandboxing
     - [ ] sys mseal
     - [ ] sys landlock
-
+- [x] concurrency
+- [ ] fuzzing
