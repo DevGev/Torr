@@ -1,4 +1,5 @@
 #include <multiproc/multiproc.hpp>
+#include <multiproc/sandbox.h>
 #include <unistd.h>
 #include <memory.h>
 #include <fstream>
@@ -39,6 +40,14 @@ torr::multiproc::~multiproc() {}
 void torr::multiproc_task::quit()
 {
     exit(0);
+}
+
+void torr::multiproc_task::sandbox()
+{
+    if (!sandbox_landlock_process())
+        SANDBOX_FAILED();
+    if (!sandbox_seccomp_filter_process())
+        SANDBOX_FAILED();
 }
 
 bool torr::multiproc_task::work()
@@ -110,8 +119,13 @@ pid_t torr::multiproc::spawn()
     else if (c_pid > 0) {
         return c_pid;
     }
-    else { 
+    else {
         multiproc_task task(m_ourself, peer);
+
+        /* sandbox after multiproc_task constructor
+         * due to shmget, and the alike */
+        task.sandbox();
+
         task.work();
         task.quit();
 

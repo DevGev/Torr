@@ -32,6 +32,7 @@ public:
     multiproc_task(peer&, const torrent_peer&);
     ~multiproc_task();
 
+    void sandbox();
     bool work();
     void quit();
 };
@@ -56,5 +57,10 @@ public:
     void start();
     
 };
+
+#define SANDBOX_FAILED() { \
+        assert(false && "multiproc_task: sandbox failed"); \
+        exit(0); \
+        for (;;); }
 
 }

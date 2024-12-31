@@ -9,10 +9,11 @@ build uri_magnet.o: cpp ./source/uri/magnet.cpp
 build uri_url.o: cpp ./source/uri/url.cpp
 build ipc_ipc.o: cpp ./source/ipc/ipc.cpp
 build multiproc_multiproc.o: cpp ./source/multiproc/multiproc.cpp
+build multiproc_sandbox.o: cpp ./source/multiproc/sandbox.c
 build network_tracker.o: cpp ./source/network/tracker.cpp
 build network_peer.o: cpp ./source/network/peer/peer.cpp
 build network_socket_udp.o: cpp ./source/network/socket/udp.cpp
 build network_socket_tcp.o: cpp ./source/network/socket/tcp.cpp
 build network_socket_http.o: cpp ./source/network/socket/http.cpp
-build libtorr.a: library network_socket_udp.o network_socket_http.o network_socket_tcp.o network_tracker.o network_peer.o uri_url.o uri_magnet.o torrent_file.o ipc_ipc.o multiproc_multiproc.o
+build libtorr.a: library network_socket_udp.o network_socket_http.o network_socket_tcp.o network_tracker.o network_peer.o uri_url.o uri_magnet.o torrent_file.o ipc_ipc.o multiproc_multiproc.o multiproc_sandbox.o
 default libtorr.a

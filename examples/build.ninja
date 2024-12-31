@@ -1,8 +1,8 @@
 rule cpp
-    command = g++ -std=c++2b -I../source/ -O3 -c -lssl -lcrypto $in -o $out
+    command = g++ -std=c++2b -I../source/ -O3 -c $in -o $out
 
 rule link
-    command = g++ -std=c++2b -lssl -lcrypto $in
+    command = g++ -std=c++2b -lssl -lcrypto -lseccomp $in
 
 build download.o: cpp download.cpp
 build tests: link download.o ../libtorr.a

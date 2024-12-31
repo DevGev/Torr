@@ -4,6 +4,7 @@
 #include <uri/magnet.hpp>
 #include <uri/url.hpp>
 #include <multiproc/multiproc.hpp>
+#include <multiproc/sandbox.h>
 
 #include <cassert>
 #include <print>
@@ -63,7 +64,7 @@ int main()
 
     auto magnet = torr::magnet();
     assert(
-        magnet.from_string(std::string(TEST_MAGNET_STRING)).has_value() &&
+        magnet.from_string(std::string(MAGNET)).has_value() &&
         "failed due to magnet.from_string() throwing std::unexpected"
     );
 
