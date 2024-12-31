@@ -49,6 +49,7 @@ See ``CONTRIBUTE.md`` and roadmap below
     - [ ] local fs
 - [ ] sandboxing
     - [ ] sys mseal
-    - [ ] sys landlock
+    - [x] sys landlock
+    - [x] sys seccomp
 - [x] concurrency
 - [ ] fuzzing
