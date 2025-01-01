@@ -1,7 +1,7 @@
 #!/bin/sh
 
 compiler="g++"
-compile_flags="-std=c++2b -I../source/ -O3 -lssl -lcrypto"
+compile_flags="-std=c++2b -I../source/ -O3 -lssl -lcrypto -lseccomp"
 torr_path="../libtorr.a"
 
 if [ ! -f $torr_path ]; then
