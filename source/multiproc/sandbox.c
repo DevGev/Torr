@@ -59,7 +59,14 @@ static const int seccomp_filter_whitelist[] {
     SCMP_SYS(msync),
     SCMP_SYS(mmap),
     SCMP_SYS(munmap),
-    SCMP_SYS(brk)
+    SCMP_SYS(brk),
+
+    /* necessary for synchronizing ipc writes */
+    SCMP_SYS(futex_wait),
+    SCMP_SYS(futex_wake),
+    SCMP_SYS(futex_waitv),
+    SCMP_SYS(futex_requeue),
+    SCMP_SYS(futex)
 };
 
 #if DEBUG_SANDBOX
