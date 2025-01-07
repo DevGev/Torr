@@ -80,6 +80,7 @@ private:
     in_addr m_ip_address {};
     size_t m_port {};
     uint32_t m_outstanding_requests {};
+    int m_socket_timeout { 25 };
 
     bool m_handshake_complete { 0 };
     bool m_am_interested { 0 };

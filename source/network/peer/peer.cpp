@@ -171,11 +171,16 @@ bool torr::torrent_peer::receive_message(const peer& ourself)
 
     switch (message.type) {
     case peer::message_type::choke:
+        if (m_socket_timeout < 0)
+            m_socket_healthy = false;
+        m_socket_timeout--;
+
         m_am_choking = 1;
         break;
 
     case peer::message_type::unchoke:
         receive_message_unchoke(ourself);
+        m_socket_timeout = 25;
         break;
 
     case peer::message_type::interested:
