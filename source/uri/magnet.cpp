@@ -105,9 +105,10 @@ const std::expected<torr::magnet, const char*>
 const std::expected<torr::magnet, const char*>
     torr::magnet::url_to_piece_hash(const std::string& url)
 {
-
     http request;
-    request.from_string(url);
+    auto error_or_request = request.from_string(url);
+    if (!error_or_request.has_value())
+        return std::unexpected(error_or_request.error());
 
     auto error_or_data = request.get_request();
     if (!error_or_data.has_value())

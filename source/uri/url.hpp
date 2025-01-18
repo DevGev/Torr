@@ -38,6 +38,7 @@ public:
     const size_t port() const;
     const std::string& path() const;
     const std::string& query() const;
+    const std::string decode(const std::string&) const;
 
     const std::expected<protocol_type, const char*>
         determine_protocol(const std::string& protocol_as_string) const;
