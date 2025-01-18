@@ -42,6 +42,8 @@ inline bool validate_torrent_bencode_map(bencode_map& bencode)
 {
     if (bencode["announce"].type() != bencode_map::target_type::strings)
         return false;
+    if (bencode["info"].type() != bencode_map::target_type::dictionaries)
+        return false;
     if (bencode["info"]["piece length"].type() != bencode_map::target_type::integers)
         return false;
     if (bencode["info"]["pieces"].type() != bencode_map::target_type::strings)
