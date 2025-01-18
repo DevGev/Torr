@@ -46,6 +46,8 @@ public:
         determine_port(const std::string& port_as_string, protocol_type protocol) const;
     const std::expected<url, const char*>
         from_string(const std::string&);
+
+    static std::string bytes_as_url_escaped_string(std::span<const std::byte> bytes);
 };
 
 }

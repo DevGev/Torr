@@ -40,7 +40,7 @@ const std::expected<size_t, const char*>
 const std::expected<torr::url, const char*> 
     torr::url::from_string(const std::string& url_string)
 {
-    std::string regex_string = url_string;
+    std::string regex_string = decode(url_string);
     std::smatch regex_matches;
     const std::regex regex_pattern(URL_REGEX_PATTERN);
 
@@ -79,6 +79,36 @@ const std::expected<torr::url, const char*>
 
     return *this;
 }
+
+const std::string torr::url::decode(const std::string& url_string) const
+{
+    std::string decoded;
+    for (int i = 0; i < url_string.length(); i++) {
+        if (url_string[i] == '%') {
+            int as_hex;
+            sscanf(url_string.substr(i + 1, 2).c_str(), "%x", &as_hex);
+            decoded += static_cast<char>(as_hex);
+            i += 2;
+            continue;
+        }
+        decoded += url_string[i];
+    }
+    return decoded;
+}
+
+std::string torr::url::bytes_as_url_escaped_string(std::span<const std::byte> bytes)
+{
+    std::string escaped_string;
+    escaped_string.reserve(bytes.size() * 3);
+    for (const auto& e : bytes) {
+        char hex_string[3];
+        sprintf(hex_string, "%02x", (int)e);
+        escaped_string += "%";
+        escaped_string += hex_string;
+    }
+    return escaped_string;
+}
+
 
 /* functions below are getters */
 
