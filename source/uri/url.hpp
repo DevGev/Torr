@@ -12,7 +12,7 @@
  * group 8: query string
  * https://regex101.com/r/SAOoIt/1 */
 #define URL_REGEX_PATTERN \
-    R"(^((http[s]?|ftp|udp):\/)?\/?([^:\/\s]+)(:([^\/]*))?((\/\w+)*\/)?([\w\-\.]+[^#?\s]+)?)"
+    R"(^((http[s]?|ftp|udp):\/)?\/?([^:\/\s]+)(:([^\/]*))?((\/\w+)*\/)?([\w\-\.]+[^#?\s]+)?(.*))"
 
 namespace torr {
 

@@ -66,9 +66,10 @@ const std::expected<torr::url, const char*>
 
         /* path: optional */
         m_path = regex_matches[6];
+        m_path += regex_matches[8];
 
         /* query: optional */
-        m_query = regex_matches[8];
+        m_query = regex_matches[9];
 
     } else {
 
