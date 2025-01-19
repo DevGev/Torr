@@ -22,8 +22,14 @@ int main()
     assert(pid >= 0 && "failed due to fork()");
 
     if (pid == 0) {
-        assert(sandbox_landlock_process() && "failed due to sandbox_landlock_process()");
-        assert(sandbox_seccomp_filter_process() && "failed due to sandbox_seccomp_filter_process");
+        assert(
+            sandbox_landlock_process() &&
+            "failed due to sandbox_landlock_process()"
+        );
+        assert(
+            sandbox_seccomp_filter_process() &&
+            "failed due to sandbox_seccomp_filter_process"
+        );
 
         struct utsname u;
         uname(&u);
@@ -36,8 +42,11 @@ int main()
     else {
         usleep(1000000);
         struct stat sts;
-        int err = stat("sandbox_test_file", &sts);
-        assert((err < 0) && "failed due to sandbox not blocking syscalls");
+
+        assert(
+            stat("sandbox_test_file", &sts) < 0 &&
+            "failed due to sandbox not blocking syscalls"
+        );
     }
 
     std::println("passed");
