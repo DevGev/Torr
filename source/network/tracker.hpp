@@ -57,9 +57,6 @@ private:
         http_announce(const peer& ourself);
 
     std::expected<tracker_response*, const char*>
-        https_announce(const peer& ourself);
-
-    std::expected<tracker_response*, const char*>
         udp_announce(const peer& ourself);
 
     std::expected<size_t, const char*>

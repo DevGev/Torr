@@ -1,5 +1,6 @@
 #include "tracker.hpp"
 #include "socket/udp.hpp"
+#include "socket/http.hpp"
 #include <generic/dynamic_bitset.hpp>
 #include <utility>
 #include <cassert>
@@ -45,7 +46,7 @@ std::expected<torr::tracker_response*, const char*>
 
     switch (m_endpoint.m_protocol) {
     case url::protocol_type::https:
-        return https_announce(ourself);
+        return http_announce(ourself);
     case url::protocol_type::http:
         return http_announce(ourself);
     case url::protocol_type::udp:
@@ -226,15 +227,67 @@ std::expected<torr::tracker_response*, const char*>
 std::expected<torr::tracker_response*, const char*>
     torr::tracker::http_announce(const peer& ourself)
 {
-    assert(1 == 2 && "http_announce() is not implemented");
-    std::unreachable();
-}
+    auto optional_info_hash = ourself.download_target().file_hash();
+    if (!optional_info_hash.has_value())
+        return std::unexpected("http tracker announce: missing peer download target");
 
-std::expected<torr::tracker_response*, const char*>
-    torr::tracker::https_announce(const peer& ourself)
-{
-    assert(1 == 2 && "https_announce() is not implemented");
-    std::unreachable();
+    std::string url = m_tracker_as_string;
+    url += "?info_hash=";
+    url += url::bytes_as_url_escaped_string(std::span {
+        optional_info_hash.value()->data(),
+        optional_info_hash.value()->size()
+    });
+
+    url += "&peer_id=";
+    url += url::bytes_as_url_escaped_string(std::span {
+        ourself.identifier().data(),
+        ourself.identifier().size(),
+    });
+
+    url += "&uploaded=0";
+    url += "&downloaded=0";
+    url += "&left=0";
+    url += "&compact=1";
+    url += "&port=6881";
+
+    http request;
+    auto error_or_request = request.from_string(url);
+    if (!error_or_request.has_value())
+        return std::unexpected(error_or_request.error());
+
+    auto error_or_data = request.get_request();
+    if (!error_or_data.has_value())
+        return std::unexpected(error_or_data.error());
+
+    for (int i = 0; i < error_or_data.value().size(); i++)
+        std::print("{}", (char)error_or_data.value()[i]);
+
+    bencode_map bencode;
+    bencode.from_buffer(error_or_data.value());
+
+    if (bencode["peers"].type() != bencode_map::target_type::strings)
+        return std::unexpected("http tracker announce: did not receive compact peer list response");
+    std::string peers_string = bencode["peers"].as_str();
+
+    std::println("length {}", peers_string.size());
+    std::println("u {}", url);
+
+    udp_announce_ip_and_port peers[MAX_PEERS];
+    memset(&peers, 0, sizeof(peers));
+    memcpy(&peers, peers_string.c_str(), peers_string.size() < sizeof(peers)
+        ? peers_string.size() : sizeof(peers));
+
+    for (size_t i = 0; i < MAX_PEERS; ++i) {
+        if (!peers[i].ip_address && !peers[i].tcp_port)
+            break;
+
+        struct in_addr ip_addr;
+        ip_addr.s_addr = ntohl(peers[i].ip_address);
+        size_t port = peers[i].tcp_port;
+        m_tracker_response.m_peer_addresses.push_back({ ip_addr, port });
+    }
+
+    return &m_tracker_response;
 }
 
 const std::string& torr::tracker::as_string() const
