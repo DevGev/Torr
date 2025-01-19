@@ -108,13 +108,12 @@ std::expected<std::span<std::byte>, const char*>
         m_data.resize(m_data.size() + size);
     }
 
-    uint32_t header_end = 4;
+    uint32_t header_end = 2;
     for (size_t i = 0; i < m_data.size(); ++i) {
-        if ((char)m_data.at(i) == '\r' ||
-            (char)m_data.at(i) == '\n')
+        if ((char)m_data.at(i) == '\n')
             header_end--;
-        else
-            header_end = 4;
+        else if ((char)m_data.at(i) != '\r')
+            header_end = 2;
 
         if (!header_end) {
             m_data.erase(m_data.begin(), m_data.begin() + i);
