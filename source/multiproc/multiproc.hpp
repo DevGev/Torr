@@ -4,6 +4,7 @@
 #include <ipc/ipc.hpp>
 #include <network/peer/peer.hpp>
 #include <network/tracker.hpp>
+#include <semaphore.h>
 #include <vector>
 
 namespace torr {
@@ -23,6 +24,7 @@ class multiproc_task {
 private:
     ipc_channel m_main_channel;
     ipc_shared_memory m_bitfield_pieces;
+    sem_t* m_main_channel_mutex;
     torrent_peer m_peer;
     peer& m_ourself;
 
@@ -41,13 +43,19 @@ class multiproc {
 private:
     ipc_channel m_main_channel;
     ipc_shared_memory m_bitfield_pieces;
+    sem_t* m_main_channel_mutex;
+
     std::vector<peer_ip_touple> m_addresses;
+    std::vector<pid_t> m_tasks;
     uint8_t m_spawn_children_count { 5 };
+    bool m_is_spawning { false };
 
     peer& m_ourself;
     tracker& m_tracker;
 
     pid_t spawn();
+    void spawner();
+    void respawner();
     void handle_downloaded_piece(const multiproc_message& message);
 
 public:

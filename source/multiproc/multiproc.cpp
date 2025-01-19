@@ -114,6 +114,7 @@ pid_t torr::multiproc::spawn()
 
         if (peer.handshake(m_ourself)) {
             has_found_peer = true;
+            m_addresses.erase(it);
             break;
         }
         
@@ -131,6 +132,7 @@ pid_t torr::multiproc::spawn()
         return -1;
     }
     else if (c_pid > 0) {
+        m_tasks.push_back(c_pid);
         return c_pid;
     }
     else {
@@ -149,18 +151,46 @@ pid_t torr::multiproc::spawn()
     }
 }
 
+void torr::multiproc::respawner()
+{
+    for (auto it = m_tasks.begin(); it != m_tasks.end();) {
+        const auto& pid = *it;
+        int pid_status = waitpid(pid, 0, WNOHANG);
+        if (pid_status < 0) {
+            it = m_tasks.erase(it);
+            std::println("dead {} ", pid);
+            spawn();
+            break;
+        }
+
+        ++it;
+    }
+}
+
+void torr::multiproc::spawner()
+{
+    m_is_spawning = true;
+    for (int i = 0; i < m_spawn_children_count; i++)
+        pid_t child_pid = spawn();
+    m_is_spawning = false;
+}
+
 void torr::multiproc::start()
 {
     m_ourself.construct_handshake_string();
     m_main_channel.resize_capacity(65536);
 
-    for (int i = 0; i < m_spawn_children_count; i++)
-        pid_t child_pid = spawn();
+    std::thread(&multiproc::spawner, this).detach();
 
     while (true) {
-        /* TODO: timeout poll() & spawn new children if some died */
         multiproc_message message;
-        m_main_channel.read(sizeof(message));
+        int length = m_main_channel.read(sizeof(message), 1000);
+        if (length < sizeof(message)) {
+            if (!m_is_spawning)
+                respawner();
+            continue;
+        }
+
         memcpy(&message, m_main_channel.read_data().data(), sizeof(message));
 
         switch (message.type) {
