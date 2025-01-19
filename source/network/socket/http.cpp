@@ -40,7 +40,7 @@ std::expected<int, const char*> torr::http::connect()
     SSL_load_error_strings();
     SSL_library_init();
     m_ssl_ctx = SSL_CTX_new(SSLv23_client_method());
-    m_port = (m_url.protocol() == url::protocol_type::https) ? 443 : 80;
+    m_port = m_url.port();
 
     if (m_url.host().empty())
         return std::unexpected("http from url: invalid url");
