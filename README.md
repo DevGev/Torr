@@ -43,7 +43,10 @@ See ``CONTRIBUTE.md`` and roadmap below
      - [ ] block peers
      - [ ] seeding
      - [ ] dht
+     - [ ] utp
      - [ ] proxy
+     - [x] udp tracker
+     - [x] http tracker
 - [ ] storage
     - [ ] caching
     - [ ] local fs
