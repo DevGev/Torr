@@ -88,6 +88,10 @@ const std::string torr::url::decode(const std::string& url_string) const
         if (url_string[i] == '%') {
             int as_hex;
             sscanf(url_string.substr(i + 1, 2).c_str(), "%x", &as_hex);
+            if (as_hex != 0x3A && as_hex != 0x2F) {
+                decoded += url_string[i];
+                continue;
+            }
             decoded += static_cast<char>(as_hex);
             i += 2;
             continue;
