@@ -1,10 +1,13 @@
 #include <multiproc/multiproc.hpp>
 #include <multiproc/sandbox.h>
-#include <unistd.h>
-#include <memory.h>
-#include <fstream>
+#include <thread>
 #include <print>
 #include <span>
+#include <fstream>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <memory.h>
 
 torr::multiproc_task::multiproc_task(peer& ourself, const torrent_peer& them)
     : m_bitfield_pieces("bitfield_pieces", 2048),
@@ -13,6 +16,9 @@ torr::multiproc_task::multiproc_task(peer& ourself, const torrent_peer& them)
 {
     m_main_channel.set_pid(getppid());
     m_main_channel.connect_channel();
+    m_main_channel_mutex = sem_open(
+        "torr.main_channel_mutex", O_CREAT, 0644, 0);
+    if (m_main_channel_mutex == SEM_FAILED) quit();
 }
 
 torr::multiproc_task::~multiproc_task() {}
@@ -23,6 +29,11 @@ torr::multiproc::multiproc(peer& ourself, tracker& track)
     m_tracker(track)
 {
     m_main_channel.create_channel();
+    m_main_channel_mutex = sem_open(
+        "torr.main_channel_mutex", O_CREAT, 0644, 0);
+    if (m_main_channel_mutex == SEM_FAILED)
+        assert(false && "sem_open() failed");
+    sem_post(m_main_channel_mutex);
 
     ourself.set_shared_bitfield(
         (uint8_t*)m_bitfield_pieces.memory_pointer(),
@@ -35,7 +46,10 @@ torr::multiproc::multiproc(peer& ourself, tracker& track)
     m_addresses = announcer_or_error.value()->peers();
 }
 
-torr::multiproc::~multiproc() {}
+torr::multiproc::~multiproc()
+{
+    sem_destroy(m_main_channel_mutex);
+}
 
 void torr::multiproc_task::quit()
 {
@@ -79,10 +93,10 @@ void torr::multiproc_task::notify_downloaded_piece()
     message.payload_size = output_data.size();
     message.field0 = m_peer.download_piece().piece_index;
 
-    /* TODO: grab futex here */
+    sem_wait(m_main_channel_mutex);
     m_main_channel.write({ (std::byte*)&message, sizeof(message) });
     m_main_channel.write(output_data);
-    /* futex release here */
+    sem_post(m_main_channel_mutex);
 
     m_peer.empty_download_piece();
 }
@@ -151,7 +165,9 @@ void torr::multiproc::start()
 
         switch (message.type) {
         case multiproc_message_type::download_piece_done:
+            sem_wait(m_main_channel_mutex);
             handle_downloaded_piece(message);
+            sem_post(m_main_channel_mutex);
             break;
 
         case multiproc_message_type::unkown:
