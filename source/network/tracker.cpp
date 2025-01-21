@@ -2,9 +2,9 @@
 #include "socket/udp.hpp"
 #include "socket/http.hpp"
 #include <generic/dynamic_bitset.hpp>
+#include <generic/try.hpp>
 #include <utility>
 #include <cassert>
-#include <print>
 #include <cstring>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -19,10 +19,7 @@ std::expected<torr::endpoint, const char*>
     if (tracker_as_string.empty())
         return std::unexpected("invalid tracker: empty string");
 
-    auto url_or_error = m_tracker_as_url.from_string(tracker_as_string);
-    if (!url_or_error.has_value())
-        return std::unexpected(url_or_error.error());
-
+    TRY(m_tracker_as_url.from_string(tracker_as_string));
     m_endpoint.m_port = m_tracker_as_url.port();
     m_endpoint.m_protocol = m_tracker_as_url.protocol();
 
@@ -38,11 +35,8 @@ std::expected<torr::endpoint, const char*>
 std::expected<torr::tracker_response*, const char*>
     torr::tracker::announce(const peer& ourself)
 {
-    if (!m_has_endpoint) {
-        auto endpoint_or_error = string_to_endpoint(m_tracker_as_string);
-        if (!endpoint_or_error.has_value())
-            return std::unexpected("invalid tracker: failed to resolve endpoint");
-    }
+    if (!m_has_endpoint)
+        TRY(string_to_endpoint(m_tracker_as_string));
 
     switch (m_endpoint.m_protocol) {
     case url::protocol_type::https:
@@ -73,10 +67,8 @@ std::expected<size_t, const char*>
     connection_input.transaction_identifier = m_announce_transaction_identifier;
 
     /* 3. Send the packet. */
-    auto send_or_error = udp_socket.send((uint8_t*)&connection_input, plen);
-    if (!send_or_error.has_value())
-        return std::unexpected(send_or_error.error());
-    if (send_or_error.value_or(0) < plen)
+    auto sent = TRY(udp_socket.send((uint8_t*)&connection_input, plen));
+    if (sent < plen)
         return std::unexpected("udp tracker connection transaction: udp send failed");
 
     plen = sizeof(udp_announce_connection_output);
@@ -121,10 +113,8 @@ std::expected<size_t, const char*>
     strncpy((char*)announce_input.info_hash, (char*)optional_info_hash.value()->data(), 20);
 
     /* 3. Send the packet. */
-    auto send_or_error = udp_socket.send((uint8_t*)&announce_input, plen);
-    if (!send_or_error.has_value())
-        return std::unexpected(send_or_error.error());
-    if (send_or_error.value_or(0) < plen)
+    auto sent = TRY(udp_socket.send((uint8_t*)&announce_input, plen));
+    if (sent < plen)
         return std::unexpected("udp tracker announce transaction: udp send failed");
 
     plen = sizeof(udp_announce_output);
@@ -179,10 +169,8 @@ std::expected<size_t, const char*>
     strncpy((char*)scrape_input.info_hash, (char*)optional_info_hash.value()->data(), 20);
 
     /* 3. Send the packet. */
-    auto send_or_error = udp_socket.send((uint8_t*)&scrape_input, plen);
-    if (!send_or_error.has_value())
-        return std::unexpected(send_or_error.error());
-    if (send_or_error.value_or(0) < plen)
+    auto sent = TRY(udp_socket.send((uint8_t*)&scrape_input, plen));
+    if (sent < plen)
         return std::unexpected("udp tracker scrape transaction: udp send failed");
 
     /* 1. Receive the packet. */
@@ -207,20 +195,9 @@ std::expected<torr::tracker_response*, const char*>
     torr::tracker::udp_announce(const peer& ourself)
 {
     udp udp_socket;
-    auto udp_socket_error = udp_socket.connect(m_endpoint.m_ip_address, m_endpoint.m_port);
-    if (!udp_socket_error.has_value())
-        return std::unexpected(udp_socket_error.error());
-    
-    auto connection_transaction_or_error =
-        udp_connetion_transaction(ourself, udp_socket);
-    if (!connection_transaction_or_error.has_value())
-        return std::unexpected(connection_transaction_or_error.error());
-
-    auto announce_transaction_or_error =
-        udp_announce_transaction(ourself, udp_socket);
-    if (!announce_transaction_or_error.has_value())
-        return std::unexpected(announce_transaction_or_error.error());
-
+    TRY(udp_socket.connect(m_endpoint.m_ip_address, m_endpoint.m_port));
+    TRY(udp_connetion_transaction(ourself, udp_socket));
+    TRY(udp_announce_transaction(ourself, udp_socket));
     return &m_tracker_response;
 }
 
@@ -251,26 +228,13 @@ std::expected<torr::tracker_response*, const char*>
     url += "&port=6881";
 
     http request;
-    auto error_or_request = request.from_string(url);
-    if (!error_or_request.has_value())
-        return std::unexpected(error_or_request.error());
-
-    auto error_or_data = request.get_request();
-    if (!error_or_data.has_value())
-        return std::unexpected(error_or_data.error());
-
-    for (int i = 0; i < error_or_data.value().size(); i++)
-        std::print("{}", (char)error_or_data.value()[i]);
-
     bencode_map bencode;
-    bencode.from_buffer(error_or_data.value());
+    TRY(request.from_string(url));
+    bencode.from_buffer(TRY(request.get_request()));
 
     if (bencode["peers"].type() != bencode_map::target_type::strings)
         return std::unexpected("http tracker announce: did not receive compact peer list response");
     std::string peers_string = bencode["peers"].as_str();
-
-    std::println("length {}", peers_string.size());
-    std::println("u {}", url);
 
     udp_announce_ip_and_port peers[MAX_PEERS];
     memset(&peers, 0, sizeof(peers));
