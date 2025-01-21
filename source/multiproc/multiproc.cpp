@@ -40,10 +40,9 @@ torr::multiproc::multiproc(peer& ourself, tracker& track)
         m_bitfield_pieces.capacity()
     );
 
-    auto announcer_or_error = track.announce(m_ourself);
-    if (!announcer_or_error.value())
-        return;
-    m_addresses = announcer_or_error.value()->peers();
+    /* FIXME: pass multiple trackers */
+    auto announcer = MUST(track.announce(m_ourself));
+    m_addresses = announcer->peers();
 }
 
 torr::multiproc::~multiproc()
