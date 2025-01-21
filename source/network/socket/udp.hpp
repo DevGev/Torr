@@ -15,9 +15,9 @@ public:
     udp();
     ~udp();
 
-    std::expected<udp, const char*>
+    std::expected<udp*, const char*>
         connect(const std::string& ip_address, const size_t& port);
-    std::expected<udp, const char*>
+    std::expected<udp*, const char*>
         connect(const struct in_addr& ip_address, const size_t& port);
 
     std::expected<size_t, const char*>

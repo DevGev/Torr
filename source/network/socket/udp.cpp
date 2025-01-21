@@ -14,7 +14,7 @@ torr::udp::~udp()
         close(m_socket_fd);
 }
 
-std::expected<torr::udp, const char*>
+std::expected<torr::udp*, const char*>
     torr::udp::connect(const std::string& ip_address, const size_t& port)
 {
     struct in_addr connection_address;
@@ -23,7 +23,7 @@ std::expected<torr::udp, const char*>
     return connect(connection_address, port);
 }
 
-std::expected<torr::udp, const char*>
+std::expected<torr::udp*, const char*>
     torr::udp::connect(const struct in_addr& ip_address, const size_t& port)
 {
     m_socket_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -34,7 +34,7 @@ std::expected<torr::udp, const char*>
     m_sockaddr_connect_to.sin_family = AF_INET;
     m_sockaddr_connect_to.sin_addr.s_addr = ip_address.s_addr;
     m_sockaddr_connect_to.sin_port = htons(port);
-    return *this;
+    return this;
 }
 
 std::expected<size_t, const char*>

@@ -1,3 +1,4 @@
+#include <generic/try.hpp>
 #include <multiproc/multiproc.hpp>
 #include <multiproc/sandbox.h>
 #include <thread>
