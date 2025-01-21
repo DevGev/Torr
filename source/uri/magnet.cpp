@@ -106,15 +106,9 @@ const std::expected<torr::magnet, const char*>
     torr::magnet::url_to_piece_hash(const std::string& url)
 {
     http request;
-    auto error_or_request = request.from_string(url);
-    if (!error_or_request.has_value())
-        return std::unexpected(error_or_request.error());
-
-    auto error_or_data = request.get_request();
-    if (!error_or_data.has_value())
-        return std::unexpected(error_or_data.error());
-
-    m_torrent_bencode.from_buffer(error_or_data.value());
+    TRY(request.from_string(url));
+    auto http_data = TRY(request.get_request());
+    m_torrent_bencode.from_buffer(http_data.value());
     return *this;
 }
 
@@ -134,29 +128,20 @@ const std::expected<torr::magnet, const char*>
             continue;
         }
 
-        std::string uri_param_name = regex_matches[0].str().substr(0, 2);
+        std::string param = regex_matches[0].str().substr(0, 2);
 
-        if (uri_param_name == "tr") {
+        if (param == "tr") {
             tracker tr;
             tr.set_string(regex_matches[1]);
             m_trackers.push_back(tr);
         }
 
-        else if (uri_param_name == "xt") {
-            auto error = urn_to_file_hash(regex_matches[1]);
-            if (!error.has_value())
-                return std::unexpected(error.error());
-        }
-
-        else if (uri_param_name == "xs") {
-            auto error = url_to_piece_hash(regex_matches[1]);
-            if (!error.has_value())
-                return std::unexpected(error.error());
-        }
-
-        else if (uri_param_name == "dn") {
+        else if (param == "xt")
+            TRY(urn_to_file_hash(regex_matches[1]));
+        else if (param == "xs")
+            TRY(url_to_piece_hash(regex_matches[1]));
+        else if (param == "dn")
             m_file_name = regex_matches[1];
-        }
 
         regex_string = regex_matches.suffix().str();
     }
