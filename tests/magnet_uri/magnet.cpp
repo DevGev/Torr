@@ -19,9 +19,20 @@ int main()
         "failed due to magnet.from_string() throwing std::unexpected"
     );
 
-    assert("failed due to magnet.file_hash()" && (unsigned char)magnet.file_hash().value()->at(19) == 0x1c);
-    assert("failed due to magnet.file_hash()" && (unsigned char)magnet.file_hash().value()->at(0) == 0xdd);
-    assert("failed due to magnet.file_name()" && magnet.file_name().value()->compare(EXPECTED_FILE_NAME) == 0);
+    assert(
+        (unsigned char)magnet.file_hash().value()->at(19) == 0x1c &&
+        "failed due to magnet.file_hash()[19]"
+    );
+
+    assert(
+        (unsigned char)magnet.file_hash().value()->at(0) == 0xdd &&
+        "failed due to magnet.file_hash()[0]"
+    );
+
+    assert(
+        magnet.file_name().value()->compare(EXPECTED_FILE_NAME) == 0 &&
+        "failed due to magnet.file_name()"
+    );
 
     std::println("passed");
     return 0;

@@ -1,3 +1,4 @@
+#include <generic/try.hpp>
 #include <torrent_file.hpp>
 #include <torrent.hpp>
 #include <print>
@@ -12,11 +13,7 @@ int main()
     std::print("test: {} ... ", TEST_NAME);
 
     torr::torrent_file file;
-
-    assert(
-        file.from_path(TEST_FILE).has_value() &&
-        "failed due to torrent_file.from_path() throwing std::unexpected"
-    );
+    MUST(file.from_path(TEST_FILE).has_value());
 
     auto info_hash = *file.file_hash().value();
     std::string expected_info_hash = TEST_EXPECTED_INFO_HASH;

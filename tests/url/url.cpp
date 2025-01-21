@@ -1,3 +1,4 @@
+#include <generic/try.hpp>
 #include <uri/url.hpp>
 #include <cassert>
 #include <print>
@@ -19,10 +20,7 @@ int main()
     std::print("test: {} ... ", TEST_NAME);
 
     auto url = torr::url();
-    assert(
-        url.from_string(std::string(TEST_URL_STRING)).has_value() &&
-        "failed due to url.from_string() throwing std::unexpected"
-    );
+    MUST(url.from_string(std::string(TEST_URL_STRING)).has_value());
 
     assert(
         url.protocol() == EXPECTED_PROTOCOL &&
