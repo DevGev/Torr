@@ -59,10 +59,7 @@ const std::expected<torr::url, const char*>
         m_protocol = determine_protocol(regex_matches[2].str()).value_or(protocol_type::http);
 
         /* port: required if not http(s) */
-        auto port_or_error = determine_port(regex_matches[5].str(), m_protocol);
-        if (!port_or_error.has_value())
-            return std::unexpected(port_or_error.error());
-        m_port = port_or_error.value();
+        m_port = TRY(determine_port(regex_matches[5].str(), m_protocol));
 
         /* path: optional */
         m_path = regex_matches[6];
