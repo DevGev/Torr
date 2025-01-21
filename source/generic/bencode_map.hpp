@@ -39,7 +39,7 @@ private:
     struct target {
         target_type type { target_type::unknown };
         std::string string_value {};
-        int integer_value {};
+        int64_t integer_value {};
         std::vector<target> list_container {};
         std::unordered_map<std::string, target> map_container {};
         std::string latest_key {};
@@ -108,7 +108,7 @@ protected:
         m_state = new_state;
 
         if (m_previous_state == states::parsing_word_length) {
-            m_element_length = std::stoi(m_element_length_string);
+            m_element_length = std::stol(m_element_length_string);
             m_element_length_string = "";
         }
 
@@ -118,7 +118,7 @@ protected:
         }
 
         if (m_previous_state == states::parsing_integer) {
-            push_to_target({ target_type::integers, {}, std::stoi(m_element) });
+            push_to_target({ target_type::integers, {}, std::stol(m_element) });
             m_element = "";
         }
     }
@@ -245,7 +245,7 @@ public:
         return return_value;
     }
 
-    const int& as_int()
+    const int64_t& as_int()
     {
         assert(m_bracket_root->type == target_type::integers);
         const auto& return_value = m_bracket_root->integer_value;
