@@ -20,9 +20,9 @@ private:
     size_t m_piece_length;
     bencode_map m_torrent_bencode;
 
-    const std::expected<magnet, const char*>
+    const std::expected<magnet*, const char*>
         urn_to_file_hash(const std::string&);
-    const std::expected<magnet, const char*>
+    const std::expected<magnet*, const char*>
         url_to_piece_hash(const std::string&);
 
 public:
@@ -36,7 +36,7 @@ public:
     torrent_source::source_type type() const override;
 
     const std::vector<tracker>& trackers() const;
-    const std::expected<magnet, const char*>
+    const std::expected<magnet*, const char*>
         from_string(const std::string&);
 };
 

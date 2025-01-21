@@ -30,7 +30,7 @@ public:
     source_type type() const override;
 
     const std::vector<tracker>& trackers() const;
-    const std::expected<torrent_file, const char*> 
+    const std::expected<torrent_file*, const char*> 
         from_path(const std::filesystem::path& file_path);
 };
 

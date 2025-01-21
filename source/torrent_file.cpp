@@ -35,7 +35,7 @@ const std::vector<torr::tracker>& torr::torrent_file::trackers() const
     return m_trackers;
 }
 
-const std::expected<torr::torrent_file, const char*> 
+const std::expected<torr::torrent_file*, const char*>
     torr::torrent_file::from_path(const std::filesystem::path& file_path)
 {
     const auto iflags = std::ios::in | std::ios::binary;
@@ -64,5 +64,5 @@ const std::expected<torr::torrent_file, const char*>
     tr.set_string(m_torrent_bencode["announce"].as_str());
     m_trackers.push_back(tr);
 
-    return *this;
+    return this;
 }

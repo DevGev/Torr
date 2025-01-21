@@ -1,4 +1,5 @@
 #include "magnet.hpp"
+#include <generic/try.hpp>
 #include <network/socket/http.hpp>
 #include <ranges>
 #include <print>
@@ -45,7 +46,7 @@ torr::torrent_source::source_type torr::magnet::type() const
     return torr::torrent_source::source_type::magnet_uri;
 }
 
-const std::expected<torr::magnet, const char*>
+const std::expected<torr::magnet*, const char*>
     torr::magnet::urn_to_file_hash(const std::string& urn_string)
 {
     std::string hash_as_hex;
@@ -99,20 +100,20 @@ const std::expected<torr::magnet, const char*>
     if (m_file_hash.size() != 20)
         return std::unexpected("invalid file hash: file hash length is not 20 bytes");
 
-    return *this;
+    return this;
 }
 
-const std::expected<torr::magnet, const char*>
+const std::expected<torr::magnet*, const char*>
     torr::magnet::url_to_piece_hash(const std::string& url)
 {
     http request;
     TRY(request.from_string(url));
     auto http_data = TRY(request.get_request());
-    m_torrent_bencode.from_buffer(http_data.value());
-    return *this;
+    m_torrent_bencode.from_buffer(http_data);
+    return this;
 }
 
-const std::expected<torr::magnet, const char*> 
+const std::expected<torr::magnet*, const char*>
     torr::magnet::from_string(const std::string& uri_string)
 {
     if (uri_string.compare(0, 7, "magnet:") != 0)
@@ -154,5 +155,5 @@ const std::expected<torr::magnet, const char*>
         return std::unexpected("invalid magnet uri: missing or invalid bencode information");
 
     m_piece_length = m_torrent_bencode["info"]["piece length"].as_int();
-    return *this;
+    return this;
 }

@@ -2,6 +2,7 @@
 #include <regex>
 #include <string.h>
 #include <unordered_map>
+#include <generic/try.hpp>
 
 torr::url::url() {}
 torr::url::~url() {}
@@ -37,7 +38,7 @@ const std::expected<size_t, const char*>
     return std::stoi(port_as_string);
 }
 
-const std::expected<torr::url, const char*> 
+const std::expected<torr::url*, const char*> 
     torr::url::from_string(const std::string& url_string)
 {
     std::string regex_string = decode(url_string);
@@ -75,7 +76,7 @@ const std::expected<torr::url, const char*>
 
     }
 
-    return *this;
+    return this;
 }
 
 const std::string torr::url::decode(const std::string& url_string) const
