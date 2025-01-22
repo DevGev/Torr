@@ -7,8 +7,9 @@
 #include <cassert>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
-#include <linux/limits.h>
+#include <sys/mman.h>
 #include <linux/landlock.h>
+#include <linux/limits.h>
 #include <linux/prctl.h>
 
 /* set macro to 1 to trap seccomp intercepted syscalls
@@ -69,6 +70,17 @@ static const int seccomp_filter_whitelist[] {
     SCMP_SYS(futex)
 };
 
+int custom_seccomp_filter_mmap(scmp_filter_ctx* ctx_ptr)
+{
+    /* allow MPROTECT call with PROT_READ | PROT_WRITE, and disallow PROT_EXEC */
+    return seccomp_rule_add(*ctx_ptr, SCMP_ACT_ALLOW, SCMP_SYS(mprotect),
+        1, SCMP_CMP(2, SCMP_CMP_EQ, PROT_READ | PROT_WRITE));
+}
+
+static const void* seccomp_function_filter_whitelist[] {
+    (void*)&custom_seccomp_filter_mmap,
+};
+
 #if DEBUG_SANDBOX
 static const uint32_t seccomp_action = SECCOMP_RET_TRAP;
 #else
@@ -103,7 +115,7 @@ bool sandbox_landlock_process()
 bool sandbox_seccomp_filter_process()
 {
 #if DEBUG_SANDBOX
-    printf("warning: debugging sandbox, entering unsafe environment");
+    printf("warning: debugging sandbox, entering unsafe environment\n");
     if (!sandbox_install_sigsys_handler())
         return false;
 #endif
@@ -115,6 +127,18 @@ bool sandbox_seccomp_filter_process()
         if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, seccomp_filter_whitelist[i], 0) < 0)
             return false;
     }
+
+    const size_t whitelist_function_size = sizeof(seccomp_function_filter_whitelist)
+        / sizeof(seccomp_function_filter_whitelist[0]);
+    for (int i = 0; i < whitelist_function_size; ++i) {
+        int (*filter)(void*) = (int(*)(void*))seccomp_function_filter_whitelist[i];
+        filter(&ctx);
+    }
+
+    /* manual argument whitelist */
+    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mprotect), 1, SCMP_CMP(2, SCMP_CMP_EQ, PROT_READ | PROT_WRITE)) < 0)
+        return false;
+
     if (seccomp_load(ctx) < 0)
         return false;
 
