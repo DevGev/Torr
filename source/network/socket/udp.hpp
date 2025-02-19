@@ -23,7 +23,7 @@ public:
     std::expected<size_t, const char*>
         send(const uint8_t* buffer, size_t length, int flags = 0) const;
     std::expected<size_t, const char*>
-        receive(uint8_t* buffer, size_t length, int flags = 0) const;
+        receive(uint8_t* buffer, size_t length, int flags = 0, uint32_t timeout_seconds = 0) const;
 };
 
 }

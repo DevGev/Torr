@@ -55,8 +55,14 @@ std::expected<size_t, const char*>
 }
 
 std::expected<size_t, const char*>
-    torr::udp::receive(uint8_t* buffer, size_t length, int flags) const
+    torr::udp::receive(uint8_t* buffer, size_t length, int flags, uint32_t timeout_seconds) const
 {
+    struct timeval tv;
+    tv.tv_sec = timeout_seconds;
+
+    if (timeout_seconds && setsockopt(m_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+        return std::unexpected("udp receive: setsockopt() failed");
+
     socklen_t socklen = sizeof(m_sockaddr_connect_to);
     int recvfrom_result = recvfrom(
         m_socket_fd,
@@ -66,6 +72,10 @@ std::expected<size_t, const char*>
         (struct sockaddr*)&m_sockaddr_connect_to,
         &socklen
     );
+
+    tv.tv_sec = 0;
+    if (timeout_seconds && setsockopt(m_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+        return std::unexpected("udp receive: setsockopt() failed");
 
     if (recvfrom_result < 0)
         return std::unexpected("udp receive: recvfrom() failed");
