@@ -222,3 +222,8 @@ void torr::multiproc::handle_downloaded_piece(const multiproc_message& message)
     out_file.close();
     m_ourself.piece_download_complete(message.field0);
 }
+
+void torr::multiproc::set_children_count(uint8_t count)
+{
+    m_spawn_children_count = count;
+}

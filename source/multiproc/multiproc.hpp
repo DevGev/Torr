@@ -63,7 +63,7 @@ public:
     ~multiproc();
 
     void start();
-    
+    void set_children_count(uint8_t count);
 };
 
 #define SANDBOX_FAILED() { \
