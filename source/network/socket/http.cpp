@@ -10,10 +10,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-torr::http::http()
-{
-
-}
+torr::http::http() {}
 
 torr::http::~http()
 {

@@ -1,0 +1,9 @@
+rule cpp
+    command = g++ -std=c++2b -I../../source/ -O3 -c $in -o $out
+
+rule link
+    command = g++ -std=c++2b -lssl -lcrypto -lseccomp $in
+
+build tracker.o: cpp tracker.cpp
+build tests: link tracker.o ../../libtorr.a
+default tests
