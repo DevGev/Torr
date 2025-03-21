@@ -3,6 +3,7 @@
 #include <fstream>
 #include <random>
 #include <print>
+#include <utility>
 #include <climits>
 #include <cstring>
 #include <time.h>
@@ -118,7 +119,8 @@ bool torr::torrent_peer::set_ip_and_port(const in_addr& ip, const size_t& port)
     m_ip_address = ip;
     m_port = port;
     const char* ntoa = inet_ntoa(ip);
-    if (!ntoa) return false;
+    if (!ntoa)
+        return false;
     m_ip_address_string = ntoa; 
     return true;
 }
@@ -167,20 +169,18 @@ bool torr::torrent_peer::receive_message(const peer& ourself)
     if (!m_tcp.receive((uint8_t*)&message, sizeof(peer::message)))
         return false;
 
-    std::println("recv message {}", (int)message.type);
+    std::println("recv message {}", std::to_underlying(message.type));
 
     switch (message.type) {
     case peer::message_type::choke:
-        if (m_socket_timeout < 0)
-            m_socket_healthy = false;
-        m_socket_timeout--;
-
-        m_am_choking = 1;
+        if (message.length.as_small_endian() == 1)
+            receive_message_choke();
+        else
+            m_socket_healthy = receive_message_keep_alive(message);
         break;
 
     case peer::message_type::unchoke:
         receive_message_unchoke(ourself);
-        m_socket_timeout = 25;
         break;
 
     case peer::message_type::interested:
@@ -212,7 +212,9 @@ bool torr::torrent_peer::receive_message(const peer& ourself)
         break;
 
     default:
-        m_socket_healthy = receive_message_keep_alive(message);
+        std::println("unexpected message {}{}",
+            std::to_underlying(message.type),
+            message.length.as_small_endian());
         break;
     }
 
@@ -260,6 +262,12 @@ bool torr::torrent_peer::download_next_piece(const peer& ourself)
     determine_outstanding_requests(ourself);
     fill_outstanding_requests(ourself);
     return true;
+}
+
+bool torr::torrent_peer::receive_message_choke()
+{
+    m_am_choking = 1;
+    return m_am_choking;
 }
 
 bool torr::torrent_peer::receive_message_unchoke(const peer& ourself)
@@ -386,7 +394,12 @@ bool torr::torrent_peer::receive_message_cancel(const peer::message& message)
 bool torr::torrent_peer::receive_message_keep_alive(const peer::message& message)
 {
     if (message.length.as_small_endian() != 0)
+        return true;
+
+    time_t now = time(NULL);
+    if ((now - m_time_of_last_keep_alive_message) == 0)
         return false;
+    m_time_of_last_keep_alive_message = now;
 
     /* send keep-alive back */
     if (!m_tcp.send((uint8_t*)&message, sizeof(peer::message)))
@@ -396,7 +409,7 @@ bool torr::torrent_peer::receive_message_keep_alive(const peer::message& message
 
 bool torr::torrent_peer::fill_outstanding_requests(const peer& ourself)
 {
-    std::println("filling outstanding_ requests!");
+    std::println("filling outstanding requests!");
     uint32_t outstanding_requests =
         ourself.download_target().piece_length().value() /
         MAX_BLOCK_SIZE;

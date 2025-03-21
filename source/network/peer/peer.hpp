@@ -80,7 +80,7 @@ private:
     in_addr m_ip_address {};
     size_t m_port {};
     uint32_t m_outstanding_requests {};
-    int m_socket_timeout { 25 };
+    time_t m_time_of_last_keep_alive_message { 0 };
 
     bool m_handshake_complete { 0 };
     bool m_am_interested { 0 };
@@ -92,6 +92,7 @@ private:
     void determine_outstanding_requests(const peer& ourself);
     bool determine_download_piece(const peer& ourself);
 
+    bool receive_message_choke();
     bool receive_message_unchoke(const peer& ourself);
     bool receive_message_cancel(const peer::message& message);
     bool receive_message_block(const peer& ourself, const peer::message& message);
