@@ -13,7 +13,7 @@ int main()
     std::print("test: {} ... ", TEST_NAME);
 
     torr::torrent_file file;
-    MUST(file.from_path(TEST_FILE).has_value());
+    MUST(file.from_path(TEST_FILE));
 
     auto info_hash = *file.file_hash().value();
     std::string expected_info_hash = TEST_EXPECTED_INFO_HASH;

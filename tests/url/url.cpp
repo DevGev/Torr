@@ -20,7 +20,7 @@ int main()
     std::print("test: {} ... ", TEST_NAME);
 
     auto url = torr::url();
-    MUST(url.from_string(std::string(TEST_URL_STRING)).has_value());
+    MUST(url.from_string(std::string(TEST_URL_STRING)));
 
     assert(
         url.protocol() == EXPECTED_PROTOCOL &&
